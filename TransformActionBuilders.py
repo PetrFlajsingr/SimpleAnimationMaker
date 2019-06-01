@@ -1,69 +1,16 @@
 from Drawable2D import Drawable2D
-
-
-class TransformAction:
-    def __init__(self, frame_count, action):
-        self.__frame_count = frame_count
-        self.__frame_counter = frame_count
-        self.__action = action
-
-    def do_action(self):
-        self.__action()
-        self.__frame_counter -= 1
-        return self.is_done()
-
-    def is_done(self):
-        return self.__frame_counter == 0
-
-    def reset(self):
-        self.__frame_counter = self.__frame_count
-
-
-class LoopTransformAction:
-    def __init__(self, loop_count, queue):
-        self.__loop_count = loop_count
-        self.__loop_counter = loop_count
-        self.__queue = queue
-
-    def do_action(self):
-        self.__queue.do_action()
-
-        if self.__queue.is_done():
-            self.__loop_counter -= 1
-            self.__queue.reset()
-        return self.is_done()
-
-    def is_done(self):
-        return self.__loop_counter == 0
-
-    def reset(self):
-        self.__queue.reset()
-        self.__loop_counter = self.__loop_count
-
-
-class TransformActionQueue:
-    def __init__(self, actions):
-        self.__actions = actions
-        self.__action_index = 0
-
-    def do_action(self):
-        action = self.__actions[self.__action_index]
-        action.do_action()
-
-        if action.is_done():
-            self.__action_index += 1
-        return self.is_done()
-
-    def is_done(self):
-        return self.__action_index == len(self.__actions)
-
-    def reset(self):
-        self.__action_index = 0
-        for action in self.__actions:
-            action.reset()
+from TransformActions import TransformAction, CombinedTransfomAction, LoopTransformAction, TransformActionQueue
 
 
 class TimedTransformActionBuilder:
+    @property
+    def parent(self):
+        return self.__event_builder
+
+    @property
+    def frame_count(self):
+        return self.__frame_count
+
     def __init__(self, event_builder, frame_count):
         self.__event_builder = event_builder
         self.__frame_count = frame_count
@@ -86,6 +33,42 @@ class TimedTransformActionBuilder:
         action = lambda drawable=drawable, delta_x=delta_x, delta_y=delta_y: drawable.translate(delta_x, delta_y)
         self.__event_builder.events.append(TransformAction(self.__frame_count, action))
         return self.__event_builder
+
+    def combine_start(self):
+        return CombinedTransformActionBuilder(self)
+
+
+class CombinedTransformActionBuilder:
+    @property
+    def parent(self):
+        return self.__event_builder
+
+    def __init__(self, event_builder):
+        self.__event_builder = event_builder
+        self.__actions = []
+
+    def rotate(self, angle, axis):
+        drawable = self.parent.parent.drawable
+        action = lambda drawable=drawable, angle=angle, axis=axis: drawable.rotate(angle, axis)
+        self.__actions.append(action)
+        return self
+
+    def scale(self, scaling_factor, axis):
+        drawable = self.parent.parent.drawable
+        action = lambda drawable=drawable, scaling_factor=scaling_factor, axis=axis: drawable.scale(scaling_factor,
+                                                                                                    axis)
+        self.__actions.append(action)
+        return self
+
+    def translate(self, delta_x, delta_y):
+        drawable = self.parent.parent.drawable
+        action = lambda drawable=drawable, delta_x=delta_x, delta_y=delta_y: drawable.translate(delta_x, delta_y)
+        self.__actions.append(action)
+        return self
+
+    def combine_end(self):
+        self.parent.parent.events.append(CombinedTransfomAction(self.parent.frame_count, self.__actions))
+        return self.parent.parent
 
 
 class InterpolatedTransformActionBuilder(TimedTransformActionBuilder):
@@ -138,6 +121,10 @@ class TransformQueueActionBuilder:
 
 
 class LoopTransformActionBuilder(TransformQueueActionBuilder):
+    @property
+    def parent(self):
+        return self.__event_builder
+
     def __init__(self, event_builder, loop_count):
         super().__init__(event_builder.drawable)
         self.__event_builder = event_builder
