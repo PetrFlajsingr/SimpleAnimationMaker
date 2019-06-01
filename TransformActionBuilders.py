@@ -88,26 +88,32 @@ class InterpolatedTransformActionBuilder(TimedTransformActionBuilder):
         return super().translate(delta_x / self.__frame_count, delta_y / self.__frame_count)
 
 
-class TransformQueueActionBuilder:
-    def __init__(self, drawable: Drawable2D):
+class TransformActionQueueBuilder:
+    def __init__(self, drawable: Drawable2D, converter=None):
         self.events = []
         self.drawable = drawable
+        self.__converter = converter
+
+    def __convert_to_frames(self, value):
+        if self.__converter is not None:
+            return self.__converter.convert(value)
+        return value
 
     def begin_loop(self, loop_count):
-        return LoopTransformActionBuilder(self, loop_count)
+        return LoopTransformActionQueueBuilder(self, loop_count)
 
     def once(self):
         return TimedTransformActionBuilder(self, 1)
 
     def each(self, frame_count: int):
-        return TimedTransformActionBuilder(self, frame_count)
+        return TimedTransformActionBuilder(self, self.__convert_to_frames(frame_count))
 
     def interpolate(self, frame_count: int):
-        return InterpolatedTransformActionBuilder(self, frame_count)
+        return InterpolatedTransformActionBuilder(self, self.__convert_to_frames(frame_count))
 
     def after(self, frame_count):
         action = lambda: None
-        self.events.append(TransformAction(frame_count, action))
+        self.events.append(TransformAction(self.__convert_to_frames(frame_count), action))
         return self
 
     def reset(self):
@@ -120,7 +126,7 @@ class TransformQueueActionBuilder:
         return TransformActionQueue(self.events)
 
 
-class LoopTransformActionBuilder(TransformQueueActionBuilder):
+class LoopTransformActionQueueBuilder(TransformActionQueueBuilder):
     @property
     def parent(self):
         return self.__event_builder

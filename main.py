@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from AnimationMaker import AnimationMaker
-from TransformActionBuilders import TransformQueueActionBuilder
+from AnimationMaker import AnimationMaker, TimeToFramesConverter
+from TransformActionBuilders import TransformActionQueueBuilder
 from Drawable2D import Drawable2D
 
 
@@ -16,19 +16,10 @@ def main():
     img = cv2.resize(img, (400, 400))
     obj = Drawable2D(img)
 
-    builder2 = TransformQueueActionBuilder(obj)
+    builder2 = TransformActionQueueBuilder(obj, TimeToFramesConverter(fps=60))
     queue2 = builder2 \
-        .begin_loop(100)\
-            .begin_loop(10)\
-                .once()\
-                    .combine_start()\
-                        .translate(1, 0)\
-                        .translate(0, 1)\
-                    .combine_end()\
-            .end_loop()\
-            .once()\
-                .rotate(1, 'z')\
-        .end_loop()\
+        .each(5).translate(1, 0)\
+        .interpolate(5).scale(0.5, 'y')\
         .build()
 
     white = np.zeros([400, 400, 4], dtype=np.uint8)
@@ -39,7 +30,7 @@ def main():
         'length': 600,
         'fps': 60
     }
-    maker = AnimationMaker('/Users/petr/Desktop/test.gif', config, [queue2], [white_obj, obj])
+    maker = AnimationMaker('/Users/petr/Desktop/test.mp4', config, [queue2], [white_obj, obj])
     maker.create_animation()
 
 

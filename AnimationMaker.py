@@ -3,15 +3,15 @@ import imageio as imageio
 import numpy as np
 
 
-def alpha_blend(fg, bg, alpha):
-    fg = fg.astype("float")
-    bg = bg.astype("float")
+def alpha_blend(src, overlay, alpha):
+    src = src.astype("float")
+    overlay = overlay.astype("float")
     alpha = alpha.astype("float") / 255
 
-    fg = cv2.multiply(alpha, fg)
-    bg = cv2.multiply(1 - alpha, bg)
+    src = cv2.multiply(alpha, src)
+    overlay = cv2.multiply(1 - alpha, overlay)
 
-    output = cv2.add(fg, bg)
+    output = cv2.add(src, overlay)
 
     return output.astype("uint8")
 
@@ -31,6 +31,14 @@ def transparent_overlay(bg, fg):
     return output
 
 
+class TimeToFramesConverter:
+    def __init__(self, fps):
+        self.__fps = fps
+
+    def convert(self, time):
+        return self.__fps * time
+
+
 class AnimationMaker:
     def __init__(self, path_to_save: str, config, queues, drawables):
         self.__config = config
@@ -39,10 +47,10 @@ class AnimationMaker:
         extension = path_to_save.split('.')[-1]
         frame_width, frame_height, _ = self.__drawables[0].get_original_image().shape
         if extension == 'gif':
-            self.__video_writer = imageio.get_writer(path_to_save, mode='I')
+            self.__output_writer = imageio.get_writer(path_to_save, mode='I')
         elif extension == 'mp4':
-            self.__video_writer = cv2.VideoWriter(path_to_save, cv2.VideoWriter_fourcc(*'mp4v'), config['fps'],
-                                                  (frame_width, frame_height))
+            self.__output_writer = cv2.VideoWriter(path_to_save, cv2.VideoWriter_fourcc(*'mp4v'), config['fps'],
+                                                   (frame_width, frame_height))
         else:
             raise AttributeError('Invalid extension: ' + extension)
         self.__format = extension
@@ -66,14 +74,13 @@ class AnimationMaker:
     def __save_frame(self):
         out_img = self.__draw_drawables()
         if self.__format == 'mp4':
-            self.__video_writer.write(cv2.cvtColor(out_img, cv2.COLOR_RGBA2RGB))
+            self.__output_writer.write(cv2.cvtColor(out_img, cv2.COLOR_RGBA2RGB))
         elif self.__format == 'gif':
-            self.__video_writer.append_data(cv2.cvtColor(out_img, cv2.COLOR_BGR2RGB))
+            self.__output_writer.append_data(cv2.cvtColor(out_img, cv2.COLOR_BGR2RGB))
 
     def create_animation(self):
         for i in range(0, self.__config['length']):
             self.__apply_actions()
             self.__save_frame()
-            print("Frame:", i, "done")
         if self.__format == 'mp4':
-            self.__video_writer.release()
+            self.__output_writer.release()
