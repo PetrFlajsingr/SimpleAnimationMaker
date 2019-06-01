@@ -1,4 +1,5 @@
 import cv2
+import imageio as imageio
 import numpy as np
 
 
@@ -32,13 +33,19 @@ def transparent_overlay(bg, fg):
 
 class AnimationMaker:
     def __init__(self, path_to_save: str, config, queues, drawables):
-        self.__path = path_to_save
         self.__config = config
         self.__queues = queues
         self.__drawables = drawables
+        extension = path_to_save.split('.')[-1]
         frame_width, frame_height, _ = self.__drawables[0].get_original_image().shape
-        self.__video_writer = cv2.VideoWriter(path_to_save, cv2.VideoWriter_fourcc(*'mp4v'), config['fps'],
-                                              (frame_width, frame_height))
+        if extension == 'gif':
+            self.__video_writer = imageio.get_writer(path_to_save, mode='I')
+        elif extension == 'mp4':
+            self.__video_writer = cv2.VideoWriter(path_to_save, cv2.VideoWriter_fourcc(*'mp4v'), config['fps'],
+                                                  (frame_width, frame_height))
+        else:
+            raise AttributeError('Invalid extension: ' + extension)
+        self.__format = extension
 
     def __apply_actions(self):
         for queue in self.__queues:
@@ -58,11 +65,15 @@ class AnimationMaker:
 
     def __save_frame(self):
         out_img = self.__draw_drawables()
-        self.__video_writer.write(cv2.cvtColor(out_img, cv2.COLOR_RGBA2RGB))
+        if self.__format == 'mp4':
+            self.__video_writer.write(cv2.cvtColor(out_img, cv2.COLOR_RGBA2RGB))
+        elif self.__format == 'gif':
+            self.__video_writer.append_data(cv2.cvtColor(out_img, cv2.COLOR_BGR2RGB))
 
     def create_animation(self):
         for i in range(0, self.__config['length']):
             self.__apply_actions()
             self.__save_frame()
             print("Frame:", i, "done")
-        self.__video_writer.release()
+        if self.__format == 'mp4':
+            self.__video_writer.release()

@@ -39,7 +39,7 @@ def main():
         'length': 600,
         'fps': 60
     }
-    maker = AnimationMaker('/Users/petr/Desktop/test.mp4', config, [queue2], [white_obj, obj])
+    maker = AnimationMaker('/Users/petr/Desktop/test.gif', config, [queue2], [white_obj, obj])
     maker.create_animation()
 
 

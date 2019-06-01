@@ -4,14 +4,20 @@ A simple module to create animations.
 This is a practice project for builder pattern. The entire animation is created using builders.
 
 TODOs: 
-* gif output (only mp4 for now)
 * support for images of different sizes
 
 Images are drawn in the order they are passed into the `AnimationMaker`. Multiple queues and drawable objects can be created.
 
 Usage:
 ```python
-image = cv2.imread(PATH_TO_IMAGE)
+import cv2
+import numpy as np
+
+from AnimationMaker import AnimationMaker
+from Drawable2D import Drawable2D
+from TransformActionBuilders import TransformQueueActionBuilder
+
+image = cv2.imread('path/to/image.gif') # or .mp4
 drawable = Drawable2D(image)
 
 builder = TransformQueueActionBuilder(drawable)
@@ -34,6 +40,6 @@ config = {
     'length': 600,
     'fps': 60
 }
-maker = AnimationMaker(DESTINATION, config, [queue], [background, obj])
+maker = AnimationMaker('path/to/save', config, [queue], [background, drawable])
 maker.create_animation()
 ```
