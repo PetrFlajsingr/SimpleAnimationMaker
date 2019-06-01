@@ -92,11 +92,11 @@ class TransformActionQueueBuilder:
     def __init__(self, drawable: Drawable2D, converter=None):
         self.events = []
         self.drawable = drawable
-        self.__converter = converter
+        self.converter = converter
 
     def __convert_to_frames(self, value):
-        if self.__converter is not None:
-            return self.__converter.convert(value)
+        if self.converter is not None:
+            return self.converter.convert(value)
         return value
 
     def begin_loop(self, loop_count):
@@ -132,7 +132,7 @@ class LoopTransformActionQueueBuilder(TransformActionQueueBuilder):
         return self.__event_builder
 
     def __init__(self, event_builder, loop_count):
-        super().__init__(event_builder.drawable)
+        super().__init__(event_builder.drawable, event_builder.converter)
         self.__event_builder = event_builder
         self.__loop_count = loop_count
 
