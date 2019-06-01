@@ -89,7 +89,7 @@ class InterpolatedTransformActionBuilder(TimedTransformActionBuilder):
 
 
 class TransformActionQueueBuilder:
-    def __init__(self, drawable: Drawable2D, converter=None):
+    def __init__(self, drawable, converter=None):
         self.events = []
         self.drawable = drawable
         self.converter = converter

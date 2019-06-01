@@ -45,4 +45,22 @@ class Drawable2D:
         return self.__img.copy()
 
 
+class Drawable2DGroup:
+    def __init__(self, drawables):
+        self.__drawables = drawables
 
+    def reset_model_matrix(self):
+        for drawable in self.__drawables:
+            drawable.reset_model_matrix()
+
+    def translate(self, delta_x, delta_y):
+        for drawable in self.__drawables:
+            drawable.translate(delta_x, delta_y)
+
+    def rotate(self, angle, axis):
+        for drawable in self.__drawables:
+            drawable.rotate(angle, axis)
+
+    def scale(self, scaling_factor, axis):
+        for drawable in self.__drawables:
+            drawable.scale(scaling_factor, axis)
