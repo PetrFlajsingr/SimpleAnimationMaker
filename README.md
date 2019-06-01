@@ -10,7 +10,7 @@ TODOs:
 Images are drawn in the order they are passed into the `AnimationMaker`. Multiple queues and drawable objects can be created.
 
 Usage:
-```
+```python
 image = cv2.imread(PATH_TO_IMAGE)
 drawable = Drawable2D(image)
 
