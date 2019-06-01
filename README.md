@@ -30,6 +30,10 @@ queue = builder \
             .once().rotate(1, 'z') \ # rotate image by 1 degree
         .end_loop() \
     .end_loop() \
+    .each(10).combine_start()\ #create combined transformation and run it 10 times
+        .scale(0.4, 'z')\
+        .translate(10, -1)\
+    .combine_end()\
     .build()
     
 white = np.zeros([100, 100, 4], dtype=np.uint8)
