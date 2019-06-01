@@ -13,14 +13,16 @@ Usage:
 import cv2
 import numpy as np
 
-from AnimationMaker import AnimationMaker
+from AnimationMaker import AnimationMaker, TimeToFramesConverter
 from Drawable2D import Drawable2D
-from TransformActionBuilders import TransformQueueActionBuilder
+from TransformActionBuilders import TransformActionQueueBuilder
 
 image = cv2.imread('path/to/image.gif') # or .mp4
 drawable = Drawable2D(image)
 
-builder = TransformQueueActionBuilder(drawable)
+builder = TransformActionQueueBuilder(drawable) 
+# alternatively to use seconds in builder methods:
+builder = TransformActionQueueBuilder(drawable, TimeToFramesConverter(fps=60)) 
 queue = builder \
     .interpolate(10).scale(2, 'x')\ # interpolate scaling by the factor of 2 over 10 frames
     .begin_loop(10) \ # loop over next section 10 times
