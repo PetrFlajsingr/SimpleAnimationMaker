@@ -17,7 +17,7 @@ from AnimationMaker import AnimationMaker, TimeToFramesConverter
 from Drawable2D import Drawable2D
 from TransformActionBuilders import TransformActionQueueBuilder
 
-image = cv2.imread('path/to/image.gif') # or .mp4
+image = cv2.imread('path/to/image.png')
 drawable = Drawable2D(image)
 
 builder = TransformActionQueueBuilder(drawable) 
@@ -46,6 +46,6 @@ config = {
     'length': 600,
     'fps': 60
 }
-maker = AnimationMaker('path/to/save', config, [queue], [background, drawable])
+maker = AnimationMaker('path/to/save.mp4', config, [queue], [background, drawable]) # or .gif
 maker.create_animation()
 ```
