@@ -7,6 +7,14 @@ class Drawable2D:
     def __init__(self, img: np.array):
         self.__img = img
         self.__model_matrix = Matrices.create_identity_matrix()
+        self.alpha = 1.0
+
+    def add_to_alpha(self, value):
+        self.alpha += value
+        if self.alpha < 0:
+            self.alpha = 0
+        elif self.alpha > 1.0:
+            self.alpha = 1.0
 
     def reset_model_matrix(self):
         self.__model_matrix = Matrices.create_identity_matrix()
@@ -38,8 +46,10 @@ class Drawable2D:
         self.__move_back_from_origin()
 
     def get_transformed_image(self):
-        cols, rows, _ = self.__img.shape
-        return cv2.warpPerspective(self.__img, self.__model_matrix, (cols, rows))
+        img_copy = self.__img.copy()
+        cols, rows, _ = img_copy.shape
+        img_copy[:, :, 3] = (img_copy[:, :, 3] * self.alpha).astype(np.uint8)
+        return cv2.warpPerspective(img_copy, self.__model_matrix, (cols, rows))
 
     def get_original_image(self):
         return self.__img.copy()
@@ -48,6 +58,10 @@ class Drawable2D:
 class Drawable2DGroup:
     def __init__(self, drawables):
         self.__drawables = drawables
+
+    def add_to_alpha(self, value):
+        for drawable in self.__drawables:
+            drawable.add_to_alpha(value)
 
     def reset_model_matrix(self):
         for drawable in self.__drawables:

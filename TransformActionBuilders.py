@@ -38,6 +38,35 @@ class TimedTransformActionBuilder:
         return CombinedTransformActionBuilder(self)
 
 
+class InterpolatedTransformActionBuilder(TimedTransformActionBuilder):
+    def __init__(self, event_builder, frame_count):
+        super().__init__(event_builder, frame_count)
+        self.__event_builder = event_builder
+        self.__frame_count = frame_count
+
+    def rotate(self, angle, axis):
+        return super().rotate(angle / self.__frame_count, axis)
+
+    def scale(self, scaling_factor, axis):
+        scaling_factor = scaling_factor**(1 / self.__frame_count)
+        return super().scale(scaling_factor, axis)
+
+    def translate(self, delta_x, delta_y):
+        return super().translate(delta_x / self.__frame_count, delta_y / self.__frame_count)
+
+    def fade_out(self):
+        drawable = self.__event_builder.drawable
+        action = lambda drawable=drawable: drawable.add_to_alpha(-1 / self.__frame_count)
+        self.__event_builder.events.append(TransformAction(self.__frame_count, action))
+        return self.__event_builder
+
+    def fade_in(self):
+        drawable = self.__event_builder.drawable
+        action = lambda drawable=drawable: drawable.add_to_alpha(1 / self.__frame_count)
+        self.__event_builder.events.append(TransformAction(self.__frame_count, action))
+        return self.__event_builder
+
+
 class CombinedTransformActionBuilder:
     @property
     def parent(self):
@@ -71,23 +100,6 @@ class CombinedTransformActionBuilder:
         return self.parent.parent
 
 
-class InterpolatedTransformActionBuilder(TimedTransformActionBuilder):
-    def __init__(self, event_builder, frame_count):
-        super().__init__(event_builder, frame_count)
-        self.__event_builder = event_builder
-        self.__frame_count = frame_count
-
-    def rotate(self, angle, axis):
-        return super().rotate(angle / self.__frame_count, axis)
-
-    def scale(self, scaling_factor, axis):
-        scaling_factor = scaling_factor**(1 / self.__frame_count)
-        return super().scale(scaling_factor, axis)
-
-    def translate(self, delta_x, delta_y):
-        return super().translate(delta_x / self.__frame_count, delta_y / self.__frame_count)
-
-
 class TransformActionQueueBuilder:
     def __init__(self, drawable, converter=None):
         self.events = []
@@ -105,10 +117,10 @@ class TransformActionQueueBuilder:
     def once(self):
         return TimedTransformActionBuilder(self, 1)
 
-    def each(self, frame_count: int):
+    def each(self, frame_count):
         return TimedTransformActionBuilder(self, self.__convert_to_frames(frame_count))
 
-    def interpolate(self, frame_count: int):
+    def interpolate(self, frame_count):
         return InterpolatedTransformActionBuilder(self, self.__convert_to_frames(frame_count))
 
     def after(self, frame_count):

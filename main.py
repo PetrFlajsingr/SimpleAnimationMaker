@@ -14,27 +14,15 @@ def show_and_wait(img, delay=0):
 
 
 def main():
+    fps = 60
     img1 = cv2.imread("/Users/petr/Desktop/test.png", cv2.IMREAD_UNCHANGED)
     img1 = cv2.resize(img1, (400, 400))
     drawable1 = Drawable2D(img1)
 
-    img2 = cv2.imread("/Users/petr/Desktop/test2.png", cv2.IMREAD_UNCHANGED)
-    img2 = cv2.resize(img2, (400, 400))
-    drawable2 = Drawable2D(img2)
-
-    builder2 = TransformActionQueueBuilder(Drawable2DGroup([drawable1, drawable2]), TimeToFramesConverter(fps=60))
+    builder2 = TransformActionQueueBuilder(drawable1, TimeToFramesConverter(fps=fps))
     queue2 = builder2\
-        .begin_loop(10)\
-            .interpolate(1).scale(0.5, 'y')\
-            .interpolate(1).scale(2, 'y')\
-        .end_loop()\
-        .build()
-
-
-    b = TransformActionQueueBuilder(drawable2, TimeToFramesConverter(fps=60))
-    q1 = b\
-        .after(5)\
-        .interpolate(5).rotate(180, 'z')\
+        .interpolate(1).fade_out()\
+        .interpolate(2.5).fade_in()\
         .build()
 
     white = np.zeros([400, 400, 4], dtype=np.uint8)
@@ -42,11 +30,11 @@ def main():
     white_obj = Drawable2D(white)
 
     config = {
-        'length': 600,
-        'fps': 60
+        'length': 300,
+        'fps': fps
     }
-    maker = AnimationMaker('/Users/petr/Desktop/test.mp4', config, [q1, queue2], [white_obj, drawable1, drawable2])
-    maker.create_animation()
+    maker = AnimationMaker('/Users/petr/Desktop/test.mp4', config, [queue2], [white_obj, drawable1])
+    maker.create_and_save()
 
 
 if __name__ == '__main__':

@@ -60,7 +60,7 @@ class AnimationMaker:
             if not queue.is_done():
                 queue.do_action()
 
-    def __draw_drawables(self):
+    def __draw(self):
         out_img = None
         for drawable in self.__drawables:
             img = drawable.get_transformed_image()
@@ -72,13 +72,18 @@ class AnimationMaker:
         return out_img
 
     def __save_frame(self):
-        out_img = self.__draw_drawables()
+        out_img = self.__draw()
         if self.__format == 'mp4':
             self.__output_writer.write(cv2.cvtColor(out_img, cv2.COLOR_RGBA2RGB))
         elif self.__format == 'gif':
             self.__output_writer.append_data(cv2.cvtColor(out_img, cv2.COLOR_BGR2RGB))
 
-    def create_animation(self):
+    def create_and_callback(self, callback):
+        for i in range(0, self.__config['length']):
+            self.__apply_actions()
+            callback(self.__draw())
+
+    def create_and_save(self):
         for i in range(0, self.__config['length']):
             self.__apply_actions()
             self.__save_frame()
