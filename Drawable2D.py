@@ -25,12 +25,12 @@ class Drawable2D:
 
     def __move_to_origin(self):
         cols, rows, _ = self.__img.shape
-        translation_to_origin_matrix = Matrices.create_translation_matrix(-cols / 2, -rows / 2)
+        translation_to_origin_matrix = Matrices.create_translation_matrix(-rows / 2, -cols / 2)
         self.__model_matrix = np.matmul(translation_to_origin_matrix, self.__model_matrix)
 
     def __move_back_from_origin(self):
         cols, rows, _ = self.__img.shape
-        translation_from_origin_matrix = Matrices.create_translation_matrix(cols / 2, rows / 2)
+        translation_from_origin_matrix = Matrices.create_translation_matrix(rows / 2, cols / 2)
         self.__model_matrix = np.matmul(translation_from_origin_matrix, self.__model_matrix)
 
     def rotate(self, angle, axis):
@@ -47,9 +47,9 @@ class Drawable2D:
 
     def get_transformed_image(self):
         img_copy = self.__img.copy()
-        cols, rows, _ = img_copy.shape
+        height, width, _ = img_copy.shape
         img_copy[:, :, 3] = (img_copy[:, :, 3] * self.alpha).astype(np.uint8)
-        return cv2.warpPerspective(img_copy, self.__model_matrix, (cols, rows))
+        return cv2.warpPerspective(img_copy, self.__model_matrix, (width, height))
 
     def get_original_image(self):
         return self.__img.copy()
