@@ -128,6 +128,15 @@ class TransformActionQueueBuilder:
         self.events.append(TransformAction(self.__convert_to_frames(frame_count), action))
         return self
 
+    def visible(self, is_visible):
+        if is_visible:
+            val = 1.0
+        else:
+            val = -1.0
+        action = lambda drawable=self.drawable, value=val: drawable.add_to_alpha(value)
+        self.events.append(TransformAction(1, action))
+        return self
+
     def reset(self):
         drawable = self.drawable
         action = lambda drawable=drawable: drawable.reset_model_matrix()
