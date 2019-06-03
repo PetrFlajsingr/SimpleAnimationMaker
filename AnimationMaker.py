@@ -47,7 +47,10 @@ class AnimationMaker:
         extension = path_to_save.split('.')[-1]
         frame_width, frame_height, _ = self.__drawables[0].get_original_image().shape
         if extension == 'gif':
-            self.__output_writer = imageio.get_writer(path_to_save, mode='I')
+            kwargs = {
+                'duration': 1 / config['fps']
+            }
+            self.__output_writer = imageio.get_writer(path_to_save, mode='I', **kwargs)
         elif extension == 'mp4':
             self.__output_writer = cv2.VideoWriter(path_to_save, cv2.VideoWriter_fourcc(*'mp4v'), config['fps'],
                                                    (frame_width, frame_height))
@@ -65,8 +68,8 @@ class AnimationMaker:
         for drawable in self.__drawables:
             img = drawable.get_transformed_image()
             if out_img is None:
-                width, height, _ = img.shape
-                out_img = np.zeros((width, height, 3), dtype=img.dtype)
+                height, width, _ = img.shape
+                out_img = np.zeros((height, width, 3), dtype=img.dtype)
 
             out_img = transparent_overlay(out_img, img)
         return out_img
